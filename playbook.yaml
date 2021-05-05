@@ -3,14 +3,8 @@
     - name: testname=simulation1
       shell: grubby --args testname=simulation1 --update-kernel ALL
   
-    - name: Copy setup-simulation-1.sh
-      copy:
-        src: setup-simulation-1.sh
-        dest: /root/setup-simulation-1.sh
-        mode: "0755"
-
     - name: Run setup-simulation-1.sh
-      shell: /root/setup-simulation-1.sh
+      script: setup-simulation-1.sh
 
     - reboot:
 
@@ -29,15 +23,8 @@
     - name: testname=simulation2
       shell: grubby --args testname=simulation2 --update-kernel ALL
   
-    - name: Copy setup-simulation-2.sh
-      copy:
-        src: setup-simulation-2.sh
-        dest: /root/setup-simulation-2.sh
-        mode: "0755"
-
     - name: Run setup script 2
-      shell: /root/setup-simulation-2.sh
-      register: scriptout2
+      script: setup-simulation-2.sh
 
     - reboot:
 
