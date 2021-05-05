@@ -2,12 +2,12 @@
   blockinfile:
     path: /etc/hosts
     block: |
-      192.168.88.82 server1ic
-      192.168.88.83 server2ic
-      192.168.88.84 server3ic
+      10.90.1.1 server1ic
+      10.90.1.2 server2ic
+      10.90.1.3 server3ic
 
 - name: User testadm exists
-  ansible.builtin.user:
+  user:
     name: testadm
     comment: Test Op
     group: wheel

@@ -1,6 +1,6 @@
 - name: Simulator script
   template:
     src: run.sh.j2
-    dest: /root/run.sh
+    dest: /usr/local/bin/run.sh
     force: true
     mode: "755"

@@ -4,6 +4,9 @@ After=network.target nss-lookup.target
 
 [Service]
 WorkingDirectory=/srv/app/
+Environment=DB_HOST={{db_server}}
+Environment=DB_USER={{db_user}}
+Environment=DB_PASSWORD={{db_password}}
 ExecStart=/srv/app/.venv/bin/python -m gunicorn -w {{testapp_workers}} -b 0.0.0.0:{{testapp_port}} testapp:app
 User=testadm
 

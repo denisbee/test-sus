@@ -4,3 +4,4 @@ testapp_workers: 10
 testapp_address: server2ic
 db_user: testuser
 db_password: testpasswd1
+db_server: server1ic

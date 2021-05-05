@@ -10,8 +10,15 @@
 
 - hosts: server3ic
   tasks:
+    - name: Postgresql is up and running
+      wait_for:
+        host: server1ic
+        port: 5432
+  
     - name: Run Test
-      shell: /root/run.sh
+      shell: /usr/local/bin/run.sh
+      become: true
+      become_user: testadm
       register: scriptout1
 
     - name: Save result 1
@@ -30,8 +37,15 @@
 
 - hosts: server3ic
   tasks:
+    - name: Postgresql is up and running
+      wait_for:
+        host: server1ic
+        port: 5432
+
     - name: Run Test
-      shell: /root/run.sh
+      shell: /usr/local/bin/run.sh
+      become: true
+      become_user: testadm
       register: scriptout2
 
     - name: Save result 2
@@ -51,7 +65,7 @@
       when: len1 != len2
 
     - name: Compare
-      local_action: copy content="{{ len1 }} {{ len2 }}\n{{ result }}" dest=./result.txt
+      local_action: copy content="{{ len1 }} {{ len2 }}\n{{ result }}\n" dest=./result.txt
 
 
  
