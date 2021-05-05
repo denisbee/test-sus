@@ -1,0 +1,16 @@
+- hosts: server1ic
+  roles: [ common, db ]
+
+- hosts: server2ic
+  roles: [ common, app ]
+
+- hosts: server3ic
+  roles: [ common, simulator]
+
+- hosts: server1ic, server2ic
+  tasks:
+    - name: ssh-copy-id for testadm
+      ansible.posix.authorized_key:
+        user: testadm
+        state: present
+        key: "{{ hostvars['server3ic']['pubkeys'].stdout }}"

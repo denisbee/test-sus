@@ -1,0 +1,22 @@
+- name: /etc/hosts OK
+  blockinfile:
+    path: /etc/hosts
+    block: |
+      192.168.88.82 server1ic
+      192.168.88.83 server2ic
+      192.168.88.84 server3ic
+
+- name: User testadm exists
+  ansible.builtin.user:
+    name: testadm
+    comment: Test Op
+    group: wheel
+    generate_ssh_key: true 
+
+- name: Copy testadm's SSH keys
+  shell: "cat /home/testadm/.ssh/id_*.pub"
+  register: pubkeys
+
+- name: Set hostname
+  hostname:
+    name: "{{ inventory_hostname }}"

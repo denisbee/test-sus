@@ -1,0 +1,70 @@
+- hosts: server1ic
+  tasks:
+    - name: testname=simulation1
+      shell: grubby --args testname=simulation1 --update-kernel ALL
+  
+    - name: Copy setup-simulation-1.sh
+      copy:
+        src: setup-simulation-1.sh
+        dest: /root/setup-simulation-1.sh
+        mode: "0755"
+
+    - name: Run setup-simulation-1.sh
+      shell: /root/setup-simulation-1.sh
+
+    - reboot:
+
+- hosts: server3ic
+  tasks:
+    - name: Run Test
+      shell: /root/run.sh
+      register: scriptout1
+
+    - name: Save result 1
+      local_action: copy content={{ scriptout1.stdout }} dest=./output1.txt
+
+
+- hosts: server1ic
+  tasks:
+    - name: testname=simulation2
+      shell: grubby --args testname=simulation2 --update-kernel ALL
+  
+    - name: Copy setup-simulation-2.sh
+      copy:
+        src: setup-simulation-2.sh
+        dest: /root/setup-simulation-2.sh
+        mode: "0755"
+
+    - name: Run setup script 2
+      shell: /root/setup-simulation-2.sh
+      register: scriptout2
+
+    - reboot:
+
+- hosts: server3ic
+  tasks:
+    - name: Run Test
+      shell: /root/run.sh
+      register: scriptout2
+
+    - name: Save result 2
+      local_action: copy content={{ scriptout2.stdout }} dest=./output2.txt
+
+    - name: Count
+      set_fact:
+        len1: "{{ scriptout1.stdout | length }}"
+        len2: "{{ scriptout2.stdout | length }}"
+
+    - set_fact:
+        result: PASS
+      when: len1 == len2
+
+    - set_fact:
+        result: FAIL
+      when: len1 != len2
+
+    - name: Compare
+      local_action: copy content="{{ len1 }} {{ len2 }}\n{{ result }}" dest=./result.txt
+
+
+ 

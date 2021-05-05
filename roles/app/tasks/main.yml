@@ -1,0 +1,39 @@
+- name: Packages installed
+  dnf:
+    name:
+      - python3
+    state: latest
+
+- name: Test app
+  copy:
+    src: app
+    dest: /srv/
+    group: wheel
+    mode: g+rwx
+
+- name: Set python env
+  pip:
+    virtualenv: /srv/app/.venv
+    virtualenv_command: python3 -m venv /srv/app/.venv
+    requirements: /srv/app/requirements.txt
+    state: latest
+
+- name: Systemd Unit
+  template:
+    src: testapp.service.j2
+    dest: /etc/systemd/system/testapp.service
+    force: true
+
+- name: Start testapp
+  systemd:
+    state: restarted
+    enabled: true
+    name: testapp
+    daemon_reload: true
+
+- name: Open port {{ testapp_port }} in firewalld
+  ansible.posix.firewalld:
+    port: "{{ testapp_port }}/tcp"
+    permanent: yes
+    state: enabled
+    immediate: true

@@ -1,0 +1,7 @@
+---
+testapp_path: /srv/app/
+testapp_port: 30000
+testapp_workers: 10
+testapp_address: server2ic
+db_user: testuser
+db_password: testpasswd1

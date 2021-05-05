@@ -1,0 +1,134 @@
+- name: Packages installed
+  dnf:
+    name:
+      - "@postgresql:13"
+      - python3
+      - python3-psycopg2
+      - python3-lxml
+    state: latest
+  when:
+    - ansible_os_family == 'RedHat'
+
+- name: PostgreSQL initialized
+  command: postgresql-setup initdb
+  args:
+    creates: /var/lib/pgsql/data
+
+- name: PostgreSQL enabled, started
+  systemd:
+    name: postgresql
+    enabled: true
+    state: started
+
+- name: "PostgreSQL: authenticate all network connections"
+  community.postgresql.postgresql_pg_hba:
+    dest: /var/lib/pgsql/data/pg_hba.conf
+    contype: host
+    users: all
+    source: 0.0.0.0/0
+    databases: all
+    create: true
+  register: pg_hba
+
+- name: "PostgreSQL: all interfaces"
+  community.postgresql.postgresql_set:
+    name: listen_addresses
+    value: '*'
+  become: true
+  become_user: postgres
+  register: pgconf
+
+- name: Restart PostgreSQL
+  systemd:
+    name: postgresql
+    state: restarted
+  when: pgconf.changed or pg_hba.changed
+
+- name: Open port 5432/tcp in firewalld
+  ansible.posix.firewalld:
+    port: 5432/tcp
+    permanent: yes
+    state: enabled
+    immediate: true
+
+- name: Got sample dataset
+  command: 'curl -L https://datasets.imdbws.com/title.basics.tsv.gz | zcat | tail -n +2 >/tmp/dataset.tsv.tmp && mv /tmp/dataset.tsv.tmp /tmp/dataset.tsv'
+  args:
+    creates: /tmp/dataset.tsv
+
+- name: Database with name "titlesdb" exists
+  community.postgresql.postgresql_db:
+    name: titlesdb
+  become: true
+  become_user: postgres
+
+# - name: Drop test table
+#   community.postgresql.postgresql_table:
+#     db: titlesdb
+#     name: titles
+#     state: absent
+#   become: true
+#   become_user: postgres
+
+- name: Create test table
+  community.postgresql.postgresql_table:
+    db: titlesdb
+    name: titles
+    columns:
+    - tconst char(15) primary key
+    - titleType varchar
+    - primaryTitle varchar
+    - originalTitle varchar
+    - isAdult boolean	
+    - startYear integer
+    - endYear varchar
+    - runtimeMinutes integer
+    - genres varchar
+  become: yes
+  become_user: postgres
+  register: dbtable
+
+- name: Load test dataset
+  community.postgresql.postgresql_copy:
+    dst: titles
+    copy_from: '/tmp/dataset.tsv'
+    db: titlesdb
+    options:
+      format: text
+  become: yes
+  become_user: postgres
+  when:
+    - dbtable.changed
+
+- name: Create testuser
+  postgresql_user:
+    db: titlesdb
+    name: "{{ db_user }}"
+    password: "{{ db_password }}"
+    priv: "CONNECT/titles:ALL"
+    expires: infinity
+  become: yes
+  become_user: postgres
+
+- name: Copy vm.xml
+  copy:
+    src: vm.xml
+    dest: /tmp/vm.xml
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: "Fix vm disks: cache=none"
+  community.general.xml:
+    path: /tmp/vm.xml
+    xpath: /domain/devices/disk
+    attribute: cache
+    value: "none"
+
+
+- name: "Fix vm disks: io=native"
+  community.general.xml:
+    path: /tmp/vm.xml
+    xpath: /domain/devices/disk
+    attribute: io
+    value: native

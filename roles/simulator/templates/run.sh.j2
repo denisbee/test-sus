@@ -1,0 +1,7 @@
+#!/bin/sh
+
+for genre in Drama Comedy Documentary News; do
+    for year in 1965 1979 1990 1999 2019; do
+        curl -L "http://{{testapp_address}}:{{testapp_port}}/?genre=${genre}&year=$year"
+    done
+done
