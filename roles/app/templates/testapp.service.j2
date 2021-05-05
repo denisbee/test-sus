@@ -3,8 +3,8 @@ Description=Test App
 After=network.target nss-lookup.target
 
 [Service]
-WorkingDirectory={{testapp_path}}
-ExecStart={{testapp_path}}/.venv/bin/python -m gunicorn -w {{testapp_workers}} -b 0.0.0.0:{{testapp_port}} testapp:app
+WorkingDirectory=/srv/app/
+ExecStart=/srv/app/.venv/bin/python -m gunicorn -w {{testapp_workers}} -b 0.0.0.0:{{testapp_port}} testapp:app
 User=testadm
 
 [Install]
